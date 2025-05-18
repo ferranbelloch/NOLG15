@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="./css/alumno-detalle.css">
+    <title>Detalles del Alumno - NOL_G15</title>
+</head>
+<body>
+    <div class="container">
+        <div class="profile-header">
+            <div class="profile-image">
+                <div class="profile-placeholder">MG</div>
+            </div>
+            <div class="profile-info">
+                <h1 id="alumnoNombre">Mario García</h1>
+                <p class="matricula" id="alumnoMatricula">A12345</p>
+            </div>
+        </div>
+
+        <div class="content-grid">
+            <div class="info-card">
+                <h2>Información Personal</h2>
+                <div class="info-content">
+                    <p><strong>Email:</strong> <span id="alumnoEmail">mario.garcia@example.com</span></p>
+                    <p><strong>Especialidad:</strong> <span id="alumnoEspecialidad">Ingeniería del Software</span></p>
+                </div>
+            </div>
+
+            <div class="info-card asignatura-info">
+                <h2>Información de la Asignatura</h2>
+                <div id="asignaturaDetalle">
+                    <!-- Se llenará dinámicamente -->
+                </div>
+            </div>
+        </div>
+
+        <a href="asignaturas.html" class="back-button">Volver a Asignaturas</a>
+    </div>
+
+    <script>
+        window.onload = function() {
+            const params = new URLSearchParams(window.location.search);
+            const asignaturaId = params.get('asignatura');
+            
+            // Datos de ejemplo (en el futuro vendrán del servlet)
+            const asignaturas = {
+                'DW2024': {
+                    nombre: 'Desarrollo Web',
+                    nota: 8.5,
+                    profesor: 'Dr. Juan Martínez',
+                    creditos: 6
+                },
+                'BD2024': {
+                    nombre: 'Bases de Datos',
+                    nota: 9.0,
+                    profesor: 'Dra. Ana López',
+                    creditos: 6
+                },
+                'PA2024': {
+                    nombre: 'Programación Avanzada',
+                    nota: 7.8,
+                    profesor: 'Dr. Carlos Ruiz',
+                    creditos: 6
+                }
+            };
+
+            const asignatura = asignaturas[asignaturaId];
+            if (asignatura) {
+                const asignaturaDetalle = document.getElementById('asignaturaDetalle');
+                asignaturaDetalle.innerHTML = `
+                    <div class="asignatura-header">
+                        <h3>${asignatura.nombre}</h3>
+                        <span class="nota ${asignatura.nota >= 7 ? 'nota-alta' : 'nota-media'}">${asignatura.nota}</span>
+                    </div>
+                    <div class="asignatura-details">
+                        <p><strong>Código:</strong> ${asignaturaId}</p>
+                        <p><strong>Profesor:</strong> ${asignatura.profesor}</p>
+                        <p><strong>Créditos:</strong> ${asignatura.creditos}</p>
+                    </div>
+                `;
+            }
+        };
+    </script>
+</body>
+</html> 
