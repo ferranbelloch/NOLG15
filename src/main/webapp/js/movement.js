@@ -1,5 +1,5 @@
-const signUpButton = document.getElementById('signUp');
-const signInButton = document.getElementById('signIn');
+const signUpButton = document.getElementById('studentLogin');
+const signInButton = document.getElementById('teacherLogin');
 const container = document.getElementById('container');
 
 signUpButton.addEventListener('click', () => {
