@@ -21,15 +21,15 @@
 		</form>
 	</div>
 	<div class="form-container sign-in-container">
-		<form action="#">
+		<form action="login" method="post">
 			<h1>Inicio alumno</h1>
 			<br>
 			<span>Usa tu email para el inicio</span>
             <br>
-			<input type="email" placeholder="Email" />
-			<input type="password" placeholder="Password" />
+			<input type="text" name="dni" placeholder="DNI" required/>
+			<input type="password" name="password" placeholder="Contraseña" required/>
 			<a href="#">He olvidado mi contraseña</a>
-			<button>Entrar</button>
+			<button type="submit">Entrar</button>
 		</form>
 	</div>
 	<div class="overlay-container">
