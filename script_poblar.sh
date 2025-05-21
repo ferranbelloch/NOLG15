@@ -6,9 +6,7 @@ COOKIE="cucu"                 # almacena JSESSIONID
 ADMIN_DNI="111111111"         # usuario administrador
 ADMIN_PASS="654321"
 
-################################################################################
-# 1. LOGIN – obtenemos la clave de sesión (key)
-################################################################################
+# 1. LOGIN
 KEY=$(curl -s --data "{\"dni\":\"$ADMIN_DNI\",\"password\":\"$ADMIN_PASS\"}" \
           -X POST -H "Content-Type: application/json" \
           "$BASE/login" -c "$COOKIE" -b "$COOKIE" \
@@ -16,9 +14,7 @@ KEY=$(curl -s --data "{\"dni\":\"$ADMIN_DNI\",\"password\":\"$ADMIN_PASS\"}" \
 
 echo "Sesión abierta (key=$KEY)"
 
-################################################################################
 # 2. CARGA DE ASIGNATURAS
-################################################################################
 declare -a ASIGNATURAS=(
 '{"acronimo":"DEW","nombre":"Desarrollo Web","curso":3,"cuatrimestre":"B","creditos":4.5}'
 '{"acronimo":"IAP","nombre":"Integración de Aplicaciones","curso":4,"cuatrimestre":"A","creditos":4.5}'
@@ -32,9 +28,7 @@ for A in "${ASIGNATURAS[@]}"; do
 done
 echo "Asignaturas cargadas"
 
-################################################################################
 # 3. CARGA DE PROFESORES
-################################################################################
 declare -a PROFES=(
 '{"dni":"23456733H","nombre":"Ramón","apellidos":"Garcia"}'
 '{"dni":"10293756L","nombre":"Pedro","apellidos":"Valderas"}'
@@ -49,9 +43,7 @@ for P in "${PROFES[@]}"; do
 done
 echo "Profesores cargados"
 
-################################################################################
 # 4. CARGA DE ALUMNOS + MATRÍCULAS
-################################################################################
 read -r -d '' ALUMNOS_JSON <<"EOF"
 [
   {"dni":"12345678W","nombre":"Pepe","apellidos":"Garcia Sanchez","password":"123456","asignaturas":["DCU","DEW","IAP"]},
