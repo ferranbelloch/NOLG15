@@ -1,2 +1,0 @@
-## Constitución de Grupo
-
