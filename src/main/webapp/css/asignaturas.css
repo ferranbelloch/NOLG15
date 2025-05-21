@@ -204,3 +204,13 @@ body {
         grid-template-columns: 1fr;
     }
 } 
+
+footer {
+    width: 100%;
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: auto;
+    background-color: transparent;
+    font-size: 0.9rem;
+    color: #333;
+}
