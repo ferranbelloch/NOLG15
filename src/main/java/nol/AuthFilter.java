@@ -15,21 +15,24 @@ import jakarta.servlet.http.HttpSession;
 public class AuthFilter implements Filter {
     @Override
     public void doFilter(ServletRequest req, ServletResponse res,
-                         FilterChain chain) throws IOException, ServletException {
+                         FilterChain chain)
+            throws IOException, ServletException {
 
-        HttpServletRequest  r  = (HttpServletRequest) req;
+        HttpServletRequest  r   = (HttpServletRequest) req;
         HttpServletResponse resp = (HttpServletResponse) res;
+        String uri = r.getRequestURI();          //  /NOL_G15/asignaturas.html
         HttpSession s = r.getSession(false);
 
-        boolean logged = (s != null && s.getAttribute("dni") != null);
-        boolean atLogin = r.getRequestURI().endsWith("/login") ||
-                          r.getRequestURI().endsWith("/login.html");
+        boolean logged  = s != null && s.getAttribute("key") != null;
+        boolean publico = uri.endsWith(".html")        // páginas públicas
+                       || uri.startsWith(r.getContextPath() + "/css")
+                       || uri.startsWith(r.getContextPath() + "/js")
+                       || uri.startsWith(r.getContextPath() + "/login");
 
-        if (logged || atLogin) {
-            chain.doFilter(req, res);          // sigue la cadena
+        if (logged || publico) {
+            chain.doFilter(req, res);            // sigue
         } else {
             resp.sendRedirect(r.getContextPath() + "/login.html");
         }
     }
 }
-
