@@ -20,7 +20,7 @@ public class AuthFilter implements Filter {
 
         HttpServletRequest  r   = (HttpServletRequest) req;
         HttpServletResponse resp = (HttpServletResponse) res;
-        String uri = r.getRequestURI();          //  /NOL_G15/asignaturas.html
+        String uri = r.getRequestURI();          //  /NOL_G15  /asignaturas.html
         HttpSession s = r.getSession(false);
 
         boolean logged  = s != null && s.getAttribute("key") != null;
