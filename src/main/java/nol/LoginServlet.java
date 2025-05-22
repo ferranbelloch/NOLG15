@@ -40,7 +40,8 @@ public class LoginServlet extends HttpServlet {
         if (r.getStatus() == 200) {
             String key = r.readEntity(String.class);
             req.getSession().setAttribute("key", key);
-            resp.sendRedirect("asignaturas.html");
+            req.getSession().setAttribute("dni", dni);
+            resp.sendRedirect("asignaturas");
         } else {
             resp.sendError(401, "Credenciales inválidas");
         }

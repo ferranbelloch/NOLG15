@@ -75,75 +75,9 @@ public class AsignaturasServlet extends HttpServlet {
         }
     }
     
-    private List<Map<String, Object>> procesarAsignaturasAlumno(String jsonResponse, String dniAlumno) {
-        List<Map<String, Object>> asignaturasAlumno = new ArrayList<>();
-        
-        try {
-            JsonObject root = gson.fromJson(jsonResponse, JsonObject.class);
-            JsonArray alumnos = root.getAsJsonArray("alumnos");
-            JsonArray asignaturas = root.getAsJsonArray("asignaturas");
-            
-            // Buscar el alumno por DNI
-            JsonObject alumnoActual = null;
-            for (JsonElement alumnoElement : alumnos) {
-                JsonObject alumno = alumnoElement.getAsJsonObject();
-                if (dniAlumno.equals(alumno.get("dni").getAsString())) {
-                    alumnoActual = alumno;
-                    break;
-                }
-            }
-            
-            if (alumnoActual != null && alumnoActual.has("asignaturas")) {
-                JsonArray asignaturasArray = alumnoActual.getAsJsonArray("asignaturas");
-                
-                // Para cada asignatura del alumno, buscar los detalles completos
-                for (JsonElement asigElement : asignaturasArray) {
-                    String acronimoAsignatura = asigElement.getAsString();
-                    
-                    // Buscar detalles de la asignatura
-                    for (JsonElement asigDetalleElement : asignaturas) {
-                        JsonObject asigDetalle = asigDetalleElement.getAsJsonObject();
-                        if (acronimoAsignatura.equals(asigDetalle.get("acronimo").getAsString())) {
-                            Map<String, Object> asignatura = new HashMap<>();
-                            asignatura.put("codigo", asigDetalle.get("acronimo").getAsString());
-                            asignatura.put("nombre", asigDetalle.get("nombre").getAsString());
-                            asignatura.put("curso", asigDetalle.get("curso").getAsInt());
-                            asignatura.put("cuatrimestre", asigDetalle.get("cuatrimestre").getAsString());
-                            asignatura.put("creditos", asigDetalle.get("creditos").getAsDouble());
-                            
-                            // Generar información adicional para visualización
-                            asignatura.put("grupoNombre", "Grupo " + generarGrupo(acronimoAsignatura));
-                            asignatura.put("miembros", generarMiembros(acronimoAsignatura));
-                            
-                            asignaturasAlumno.add(asignatura);
-                            break;
-                        }
-                    }
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        
-        return asignaturasAlumno;
-    }
+        private List<Map<String, Object>> procesarAsignaturasAlumno(String jsonResponse, String dniAlumno) {        List<Map<String, Object>> asignaturasAlumno = new ArrayList<>();                try {            JsonObject root = gson.fromJson(jsonResponse, JsonObject.class);            JsonArray alumnos = root.getAsJsonArray("alumnos");            JsonArray asignaturas = root.getAsJsonArray("asignaturas");                        // Caso especial: si es administrador, mostrar todas las asignaturas            if ("111111111".equals(dniAlumno)) {                for (JsonElement asigDetalleElement : asignaturas) {                    JsonObject asigDetalle = asigDetalleElement.getAsJsonObject();                    Map<String, Object> asignatura = new HashMap<>();                    asignatura.put("codigo", asigDetalle.get("acronimo").getAsString());                    asignatura.put("nombre", asigDetalle.get("nombre").getAsString());                    asignatura.put("curso", asigDetalle.get("curso").getAsInt());                    asignatura.put("cuatrimestre", asigDetalle.get("cuatrimestre").getAsString());                    asignatura.put("creditos", asigDetalle.get("creditos").getAsDouble());                                        // Generar información adicional para visualización                    asignatura.put("grupoNombre", "Grupo " + generarGrupo(asigDetalle.get("acronimo").getAsString()));                    asignatura.put("miembros", generarMiembros(asigDetalle.get("acronimo").getAsString()));                                        asignaturasAlumno.add(asignatura);                }                return asignaturasAlumno;            }                        // Proceso normal para alumnos regulares            // Buscar el alumno por DNI            JsonObject alumnoActual = null;            for (JsonElement alumnoElement : alumnos) {                JsonObject alumno = alumnoElement.getAsJsonObject();                if (dniAlumno.equals(alumno.get("dni").getAsString())) {                    alumnoActual = alumno;                    break;                }            }                        if (alumnoActual != null && alumnoActual.has("asignaturas")) {                JsonArray asignaturasArray = alumnoActual.getAsJsonArray("asignaturas");                                // Para cada asignatura del alumno, buscar los detalles completos                for (JsonElement asigElement : asignaturasArray) {                    String acronimoAsignatura = asigElement.getAsString();                                        // Buscar detalles de la asignatura                    for (JsonElement asigDetalleElement : asignaturas) {                        JsonObject asigDetalle = asigDetalleElement.getAsJsonObject();                        if (acronimoAsignatura.equals(asigDetalle.get("acronimo").getAsString())) {                            Map<String, Object> asignatura = new HashMap<>();                            asignatura.put("codigo", asigDetalle.get("acronimo").getAsString());                            asignatura.put("nombre", asigDetalle.get("nombre").getAsString());                            asignatura.put("curso", asigDetalle.get("curso").getAsInt());                            asignatura.put("cuatrimestre", asigDetalle.get("cuatrimestre").getAsString());                            asignatura.put("creditos", asigDetalle.get("creditos").getAsDouble());                                                        // Generar información adicional para visualización                            asignatura.put("grupoNombre", "Grupo " + generarGrupo(acronimoAsignatura));                            asignatura.put("miembros", generarMiembros(acronimoAsignatura));                                                        asignaturasAlumno.add(asignatura);                            break;                        }                    }                }            }        } catch (Exception e) {            e.printStackTrace();        }                return asignaturasAlumno;    }
     
-    private String obtenerNombreAlumno(String jsonResponse, String dniAlumno) {
-        try {
-            JsonObject root = gson.fromJson(jsonResponse, JsonObject.class);
-            JsonArray alumnos = root.getAsJsonArray("alumnos");
-            
-            for (JsonElement alumnoElement : alumnos) {
-                JsonObject alumno = alumnoElement.getAsJsonObject();
-                if (dniAlumno.equals(alumno.get("dni").getAsString())) {
-                    return alumno.get("nombre").getAsString() + " " + alumno.get("apellidos").getAsString();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-        return "Usuario";
-    }
+        private String obtenerNombreAlumno(String jsonResponse, String dniAlumno) {        try {            JsonObject root = gson.fromJson(jsonResponse, JsonObject.class);            JsonArray alumnos = root.getAsJsonArray("alumnos");                        for (JsonElement alumnoElement : alumnos) {                JsonObject alumno = alumnoElement.getAsJsonObject();                if (dniAlumno.equals(alumno.get("dni").getAsString())) {                    return alumno.get("nombre").getAsString() + " " + alumno.get("apellidos").getAsString();                }            }        } catch (Exception e) {            e.printStackTrace();        }        // Si es el administrador (111111111) devuelve un nombre específico        if ("111111111".equals(dniAlumno)) {            return "Administrador del Sistema";        }        return "Usuario";    }
     
     private String generarGrupo(String acronimo) {
         // Generar grupo basado en el acrónimo de la asignatura
