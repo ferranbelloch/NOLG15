@@ -11,10 +11,12 @@ import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
 import jakarta.ws.rs.core.Response;
 import jakarta.ws.rs.core.MediaType;
-import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonElement;
+import jakarta.json.Json;
+import jakarta.json.JsonArray;
+import jakarta.json.JsonObject;
+import jakarta.json.JsonValue;
+import jakarta.json.JsonReader;
+import java.io.StringReader;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.HashMap;
@@ -23,12 +25,10 @@ import java.util.Map;
 @WebServlet("/asignaturas")
 public class AsignaturasServlet extends HttpServlet {
     private Client client;
-    private Gson gson;
     
     @Override
     public void init() {
         client = ClientBuilder.newClient();
-        gson = new Gson();
     }
     
     @Override
@@ -60,8 +60,11 @@ public class AsignaturasServlet extends HttpServlet {
                 // Obtener el nombre del alumno
                 String nombreAlumno = obtenerNombreAlumno(jsonResponse, dni);
                 
+                // Crear JSON para la JSP usando JSON-P
+                JsonArray asignaturasJson = convertirListaAJsonArray(asignaturasAlumno);
+                
                 // Preparar datos para la JSP
-                req.setAttribute("asignaturasData", gson.toJson(asignaturasAlumno));
+                req.setAttribute("asignaturasData", asignaturasJson.toString());
                 req.setAttribute("nombreAlumno", nombreAlumno);
                 req.setAttribute("dniAlumno", dni);
                 
@@ -79,37 +82,40 @@ public class AsignaturasServlet extends HttpServlet {
         List<Map<String, Object>> asignaturasAlumno = new ArrayList<>();
         
         try {
-            JsonObject root = gson.fromJson(jsonResponse, JsonObject.class);
-            JsonArray alumnos = root.getAsJsonArray("alumnos");
-            JsonArray asignaturas = root.getAsJsonArray("asignaturas");
+            JsonReader jsonReader = Json.createReader(new StringReader(jsonResponse));
+            JsonObject root = jsonReader.readObject();
+            jsonReader.close();
+            
+            JsonArray alumnos = root.getJsonArray("alumnos");
+            JsonArray asignaturas = root.getJsonArray("asignaturas");
             
             // Buscar el alumno por DNI
             JsonObject alumnoActual = null;
-            for (JsonElement alumnoElement : alumnos) {
-                JsonObject alumno = alumnoElement.getAsJsonObject();
-                if (dniAlumno.equals(alumno.get("dni").getAsString())) {
+            for (JsonValue alumnoValue : alumnos) {
+                JsonObject alumno = alumnoValue.asJsonObject();
+                if (dniAlumno.equals(alumno.getString("dni"))) {
                     alumnoActual = alumno;
                     break;
                 }
             }
             
-            if (alumnoActual != null && alumnoActual.has("asignaturas")) {
-                JsonArray asignaturasArray = alumnoActual.getAsJsonArray("asignaturas");
+            if (alumnoActual != null && alumnoActual.containsKey("asignaturas")) {
+                JsonArray asignaturasArray = alumnoActual.getJsonArray("asignaturas");
                 
                 // Para cada asignatura del alumno, buscar los detalles completos
-                for (JsonElement asigElement : asignaturasArray) {
-                    String acronimoAsignatura = asigElement.getAsString();
+                for (JsonValue asigValue : asignaturasArray) {
+                    String acronimoAsignatura = asigValue.toString().replace("\"", "");
                     
                     // Buscar detalles de la asignatura
-                    for (JsonElement asigDetalleElement : asignaturas) {
-                        JsonObject asigDetalle = asigDetalleElement.getAsJsonObject();
-                        if (acronimoAsignatura.equals(asigDetalle.get("acronimo").getAsString())) {
+                    for (JsonValue asigDetalleValue : asignaturas) {
+                        JsonObject asigDetalle = asigDetalleValue.asJsonObject();
+                        if (acronimoAsignatura.equals(asigDetalle.getString("acronimo"))) {
                             Map<String, Object> asignatura = new HashMap<>();
-                            asignatura.put("codigo", asigDetalle.get("acronimo").getAsString());
-                            asignatura.put("nombre", asigDetalle.get("nombre").getAsString());
-                            asignatura.put("curso", asigDetalle.get("curso").getAsInt());
-                            asignatura.put("cuatrimestre", asigDetalle.get("cuatrimestre").getAsString());
-                            asignatura.put("creditos", asigDetalle.get("creditos").getAsDouble());
+                            asignatura.put("codigo", asigDetalle.getString("acronimo"));
+                            asignatura.put("nombre", asigDetalle.getString("nombre"));
+                            asignatura.put("curso", asigDetalle.getInt("curso"));
+                            asignatura.put("cuatrimestre", asigDetalle.getString("cuatrimestre"));
+                            asignatura.put("creditos", asigDetalle.getJsonNumber("creditos").doubleValue());
                             
                             // Generar información adicional para visualización
                             asignatura.put("grupoNombre", "Grupo " + generarGrupo(acronimoAsignatura));
@@ -130,19 +136,57 @@ public class AsignaturasServlet extends HttpServlet {
     
     private String obtenerNombreAlumno(String jsonResponse, String dniAlumno) {
         try {
-            JsonObject root = gson.fromJson(jsonResponse, JsonObject.class);
-            JsonArray alumnos = root.getAsJsonArray("alumnos");
+            JsonReader jsonReader = Json.createReader(new StringReader(jsonResponse));
+            JsonObject root = jsonReader.readObject();
+            jsonReader.close();
             
-            for (JsonElement alumnoElement : alumnos) {
-                JsonObject alumno = alumnoElement.getAsJsonObject();
-                if (dniAlumno.equals(alumno.get("dni").getAsString())) {
-                    return alumno.get("nombre").getAsString() + " " + alumno.get("apellidos").getAsString();
+            JsonArray alumnos = root.getJsonArray("alumnos");
+            
+            for (JsonValue alumnoValue : alumnos) {
+                JsonObject alumno = alumnoValue.asJsonObject();
+                if (dniAlumno.equals(alumno.getString("dni"))) {
+                    return alumno.getString("nombre") + " " + alumno.getString("apellidos");
                 }
             }
         } catch (Exception e) {
             e.printStackTrace();
         }
         return "Usuario";
+    }
+
+    private JsonArray convertirListaAJsonArray(List<Map<String, Object>> lista) {
+        jakarta.json.JsonArrayBuilder arrayBuilder = Json.createArrayBuilder();
+        
+        for (Map<String, Object> item : lista) {
+            jakarta.json.JsonObjectBuilder objectBuilder = Json.createObjectBuilder();
+            
+            for (Map.Entry<String, Object> entry : item.entrySet()) {
+                String key = entry.getKey();
+                Object value = entry.getValue();
+                
+                if (value instanceof String) {
+                    objectBuilder.add(key, (String) value);
+                } else if (value instanceof Number) {
+                    if (value instanceof Integer) {
+                        objectBuilder.add(key, (Integer) value);
+                    } else if (value instanceof Double) {
+                        objectBuilder.add(key, (Double) value);
+                    }
+                } else if (value instanceof List) {
+                    @SuppressWarnings("unchecked")
+                    List<String> stringList = (List<String>) value;
+                    jakarta.json.JsonArrayBuilder listBuilder = Json.createArrayBuilder();
+                    for (String item2 : stringList) {
+                        listBuilder.add(item2);
+                    }
+                    objectBuilder.add(key, listBuilder);
+                }
+            }
+            
+            arrayBuilder.add(objectBuilder);
+        }
+        
+        return arrayBuilder.build();
     }
     
     private String generarGrupo(String acronimo) {
