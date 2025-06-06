@@ -1,11 +1,13 @@
-const signUpButton = document.getElementById('studentLogin');
-const signInButton = document.getElementById('teacherLogin');
-const container = document.getElementById('container');
+console.log("-> movement.js cargado correctamente");  
 
-signUpButton.addEventListener('click', () => {
-	container.classList.add("right-panel-active");
-});
+const signInButton = document.getElementById('studentLogin'); 
+const signUpButton = document.getElementById('teacherLogin'); 
+const container = document.getElementById('container');
 
 signInButton.addEventListener('click', () => {
 	container.classList.remove("right-panel-active");
+});
+
+signUpButton.addEventListener('click', () => {
+  container.classList.add("right-panel-active");
 });

@@ -22,7 +22,6 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     public void init() {
-        // Inicializa Jersey
         client = ClientBuilder.newClient();
     }
 
@@ -34,7 +33,6 @@ public class LoginServlet extends HttpServlet {
         System.out.println(">>> LoginServlet: Parámetros → dni=" + dni + ", pass=" + pass);
 
         try {
-            // Cambiamos el Accept a TEXT_PLAIN porque el backend devuelve token en text/plain
             Response r = client.target(API_BASE_URL + "/login")
                                .request(MediaType.TEXT_PLAIN)
                                .post(Entity.json("{\"dni\":\""+dni+"\",\"password\":\""+pass+"\"}"));
@@ -52,7 +50,6 @@ public class LoginServlet extends HttpServlet {
                 session.setAttribute("dni", dni);
                 resp.sendRedirect(req.getContextPath() + "/asignaturas.jsp");
             } else {
-                // Si el status no es 200 o la key está vacía, reenvía al login con mensaje de error
                 r.close();
                 req.setAttribute("errorMsg", "DNI o contraseña incorrectos");
                 req.getRequestDispatcher("/login.html").forward(req, resp);
