@@ -29,51 +29,38 @@ public class LoginServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        
-        String dni = req.getParameter("dni");
+        String dni  = req.getParameter("dni");
         String pass = req.getParameter("password");
-        
-        if (dni == null || dni.trim().isEmpty() || pass == null || pass.trim().isEmpty()) {
-            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "DNI y contraseña son requeridos");
-            return;
-        }
+        System.out.println(">>> LoginServlet: Parámetros → dni=" + dni + ", pass=" + pass);
 
         try {
-            // Llamada a la API de login
+            // Cambiamos el Accept a TEXT_PLAIN porque el backend devuelve token en text/plain
             Response r = client.target(API_BASE_URL + "/login")
-                             .request(MediaType.APPLICATION_JSON)
-                             .post(Entity.json("{\"dni\":\""+dni+"\",\"password\":\""+pass+"\"}"));
+                               .request(MediaType.TEXT_PLAIN)
+                               .post(Entity.json("{\"dni\":\""+dni+"\",\"password\":\""+pass+"\"}"));
 
+            System.out.println(">>> LoginServlet: status del API = " + r.getStatus());
+            String key = null;
             if (r.getStatus() == 200) {
-                String key = r.readEntity(String.class);
-                
-                // Verificar que la key no está vacía
-                if (key == null || key.trim().isEmpty()) {
-                    resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error en la autenticación");
-                    return;
-                }
+                key = r.readEntity(String.class);
+                System.out.println(">>> LoginServlet: clave recibida = '" + key + "'");
+            }
 
-                // Crear sesión y guardar datos
+            if (r.getStatus() == 200 && key != null && !key.trim().isEmpty()) {
                 HttpSession session = req.getSession(true);
                 session.setAttribute("key", key);
                 session.setAttribute("dni", dni);
-                
-                // Redirigir directamente a asignaturas
-                resp.sendRedirect(req.getContextPath() + "/asignaturas");
+                resp.sendRedirect(req.getContextPath() + "/asignaturas.jsp");
             } else {
-                resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Credenciales inválidas");
+                // Si el status no es 200 o la key está vacía, reenvía al login con mensaje de error
+                r.close();
+                req.setAttribute("errorMsg", "DNI o contraseña incorrectos");
+                req.getRequestDispatcher("/login.html").forward(req, resp);
             }
         } catch (Exception e) {
             e.printStackTrace();
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, 
-                         "Error en el servidor: " + e.getMessage());
-        }
-    }
-
-    @Override
-    public void destroy() {
-        if (client != null) {
-            client.close();
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
+                           "Error en el servidor: " + e.getMessage());
         }
     }
 }
