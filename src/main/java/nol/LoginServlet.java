@@ -4,10 +4,7 @@ import java.io.IOException;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.HttpServlet;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jakarta.servlet.http.HttpSession;
+import jakarta.servlet.http.*;
 
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -30,9 +27,13 @@ public class LoginServlet extends HttpServlet {
             throws ServletException, IOException {
         String dni  = req.getParameter("dni");
         String pass = req.getParameter("password");
-        System.out.println(">>> LoginServlet: Parámetros → dni=" + dni + ", pass=" + pass);
+        // Leemos el parámetro oculto "role"
+        String role = req.getParameter("role"); // "alumno" o "profesor"
+        System.out.println(">>> LoginServlet: Parámetros → dni=" + dni 
+                           + ", pass=" + pass + ", role=" + role);
 
         try {
+            // Llamamos al API de login para obtener el token (text/plain)
             Response r = client.target(API_BASE_URL + "/login")
                                .request(MediaType.TEXT_PLAIN)
                                .post(Entity.json("{\"dni\":\""+dni+"\",\"password\":\""+pass+"\"}"));
@@ -45,11 +46,21 @@ public class LoginServlet extends HttpServlet {
             }
 
             if (r.getStatus() == 200 && key != null && !key.trim().isEmpty()) {
+                // Autenticación correcta
                 HttpSession session = req.getSession(true);
                 session.setAttribute("key", key);
                 session.setAttribute("dni", dni);
-                resp.sendRedirect(req.getContextPath() + "/asignaturas.jsp");
+                session.setAttribute("role", role); // Guardamos el rol en sesión
+
+                // Redireccionamos según el rol:
+                if ("profesor".equals(role)) {
+                    resp.sendRedirect(req.getContextPath() + "/asignaturasProfesor.jsp");
+                } else {
+                    // Si role es "alumno" (o cualquier otro valor), llevamos a asignaturasAlumno.jsp
+                    resp.sendRedirect(req.getContextPath() + "/asignaturasAlumno.jsp");
+                }
             } else {
+                // Credenciales inválidas
                 r.close();
                 req.setAttribute("errorMsg", "DNI o contraseña incorrectos");
                 req.getRequestDispatcher("/login.html").forward(req, resp);
@@ -58,6 +69,13 @@ public class LoginServlet extends HttpServlet {
             e.printStackTrace();
             resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                            "Error en el servidor: " + e.getMessage());
+        }
+    }
+
+    @Override
+    public void destroy() {
+        if (client != null) {
+            client.close();
         }
     }
 }
