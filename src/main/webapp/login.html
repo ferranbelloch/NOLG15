@@ -1,52 +1,56 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="./css/styles.css">
-    <title>Login NOLG15</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="./css/styles.css" />
+  <title>Login NOLG15</title>
 </head>
 <body>
 <div class="container" id="container">
-	<div class="form-container sign-up-container">
-		<form action="#">
-			<h1>Inicio Profesor</h1>
-            <br>
-			<span>Usa tu email para el inicio</span>
-            <br>
-			<input type="email" placeholder="Email" />
-			<input type="password" placeholder="Password" />
-            <br>
-			<button>Entrar</button>
-		</form>
-	</div>
-	<div class="form-container sign-in-container">
-		<form action="/NOL_G15/login" method="post">
-			<h1>Inicio alumno</h1>
-			<br>
-			<span>Usa tu email para el inicio</span>
-            <br>
-			<input type="text" name="dni" placeholder="DNI" required/>
-			<input type="password" name="password" placeholder="Contraseña" required/>
-			<a href="#">He olvidado mi contraseña</a>
-			<button type="submit">Entrar</button>
-		</form>
-	</div>
-	<div class="overlay-container">
-		<div class="overlay">
-			<div class="overlay-panel overlay-left">
-				<h1>Alumno</h1>
-				<p>Eres un alumno, accede por aquí!</p>
-				<button class="ghost" id="studentLogin">Inicio Alumno</button>
-			</div>
-			<div class="overlay-panel overlay-right">
-				<h1>Profesor</h1>
-				<p>Eres un profesor, accede por aquí!</p>
-				<button class="ghost" id="teacherLogin">Inicio Profesor</button>
-			</div>
-		</div>
-	</div>
-	<footer>NOL_G15: Arnau Vila, Ferran Belloch, Álvaro Gómez, Mario Pérez</footer>
+  <!-- FORMULARIO DEL PROFESOR -->
+  <div class="form-container sign-up-container">
+    <form action="/NOL_G15/login" method="post">
+      <h1>Inicio Profesor</h1>
+      <span>Usa tu email para el inicio</span>
+      <input type="text" name="dni" placeholder="DNI o Email" required />
+      <input type="password" name="password" placeholder="Contraseña" required />
+      <!-- Campo oculto que indica al servlet que es profesor -->
+      <input type="hidden" name="role" value="profesor" />
+      <button type="submit">Entrar como Profesor</button>
+    </form>
+  </div>
+
+  <!-- FORMULARIO DEL ALUMNO -->
+  <div class="form-container sign-in-container">
+    <form action="/NOL_G15/login" method="post">
+      <h1>Inicio Alumno</h1>
+      <span>Usa tu DNI para el inicio</span>
+      <input type="text" name="dni" placeholder="DNI" required />
+      <input type="password" name="password" placeholder="Contraseña" required />
+      <!-- Campo oculto que indica al servlet que es alumno -->
+      <input type="hidden" name="role" value="alumno" />
+      <a href="#">He olvidado mi contraseña</a>
+      <button type="submit">Entrar como Alumno</button>
+    </form>
+  </div>
+
+  <div class="overlay-container">
+    <div class="overlay">
+      <div class="overlay-panel overlay-left">
+        <h1>Alumno</h1>
+        <p>Si eres alumno, accede aquí</p>
+        <button class="ghost" id="studentLogin">Inicio Alumno</button>
+      </div>
+      <div class="overlay-panel overlay-right">
+        <h1>Profesor</h1>
+        <p>Si eres profesor, accede aquí</p>
+        <button class="ghost" id="teacherLogin">Inicio Profesor</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>NOL_G15: Arnau Vila, Ferran Belloch, Álvaro Gómez, Mario Pérez</footer>
 </div>
 <script src="./js/movement.js"></script>
 </body>
