@@ -20,15 +20,14 @@ public class AuthFilter implements Filter {
 
         HttpServletRequest  r   = (HttpServletRequest) req;
         HttpServletResponse resp = (HttpServletResponse) res;
-        String uri = r.getRequestURI();          //  /NOL_G15/asignaturas.html
+        String uri = r.getRequestURI();          //  /NOL_G15  /asignaturas.html
         HttpSession s = r.getSession(false);
 
         boolean logged  = s != null && s.getAttribute("key") != null;
-        boolean publico = uri.endsWith(".html")
-        				|| uri.endsWith(".jsp")
-                        || uri.startsWith(r.getContextPath() + "/css")
-                        || uri.startsWith(r.getContextPath() + "/js")
-                        || uri.startsWith(r.getContextPath() + "/login");
+        boolean publico = uri.endsWith(".html")        // páginas públicas
+                       || uri.startsWith(r.getContextPath() + "/css")
+                       || uri.startsWith(r.getContextPath() + "/js")
+                       || uri.startsWith(r.getContextPath() + "/login");
 
         if (logged || publico) {
             chain.doFilter(req, res);            // sigue

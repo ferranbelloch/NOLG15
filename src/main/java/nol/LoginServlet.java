@@ -1,10 +1,69 @@
+
 package nol;
 
 import java.io.IOException;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
-import jakarta.servlet.http.*;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
+import jakarta.ws.rs.client.Client;
+import jakarta.ws.rs.client.ClientBuilder;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
+
+
+@WebServlet("/login")
+public class LoginServlet extends HttpServlet {
+    private Client client;
+
+    @Override
+    public void init() {
+        // Inicializa Jersey
+        client = ClientBuilder.newClient();
+    }
+
+    @Override
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp)
+            throws ServletException, IOException {
+
+        String dni  = req.getParameter("dni");
+        String pass = req.getParameter("password");
+
+        // Llamada a la API
+        Response r = client.target("http://localhost:9090/CentroEducativo/login")
+                           .request()
+                           .post(Entity.json(
+                                "{\"dni\":\""+dni+"\",\"password\":\""+pass+"\"}"));
+
+        if (r.getStatus() == 200) {
+            String key = r.readEntity(String.class);
+            req.getSession().setAttribute("key", key);
+            resp.sendRedirect("asignaturas.html");
+        } else {
+            resp.sendError(401, "Credenciales inválidas");
+        }
+    }
+
+    @Override
+    public void destroy() {
+        client.close();
+    }
+}
+
+=======
+package nol;
+
+import java.io.IOException;
+
+import jakarta.servlet.ServletException;
+import jakarta.servlet.annotation.WebServlet;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 
 import jakarta.ws.rs.client.Client;
 import jakarta.ws.rs.client.ClientBuilder;
@@ -19,56 +78,51 @@ public class LoginServlet extends HttpServlet {
 
     @Override
     public void init() {
+        // Inicializa Jersey
         client = ClientBuilder.newClient();
     }
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp)
             throws ServletException, IOException {
-        String dni  = req.getParameter("dni");
+        
+        String dni = req.getParameter("dni");
         String pass = req.getParameter("password");
-        // Leemos el parámetro oculto "role"
-        String role = req.getParameter("role"); // "alumno" o "profesor"
-        System.out.println(">>> LoginServlet: Parámetros → dni=" + dni 
-                           + ", pass=" + pass + ", role=" + role);
+        
+        if (dni == null || dni.trim().isEmpty() || pass == null || pass.trim().isEmpty()) {
+            resp.sendError(HttpServletResponse.SC_BAD_REQUEST, "DNI y contraseña son requeridos");
+            return;
+        }
 
         try {
-            // Llamamos al API de login para obtener el token (text/plain)
+            // Llamada a la API de login
             Response r = client.target(API_BASE_URL + "/login")
-                               .request(MediaType.TEXT_PLAIN)
-                               .post(Entity.json("{\"dni\":\""+dni+"\",\"password\":\""+pass+"\"}"));
+                             .request(MediaType.APPLICATION_JSON)
+                             .post(Entity.json("{\"dni\":\""+dni+"\",\"password\":\""+pass+"\"}"));
 
-            System.out.println(">>> LoginServlet: status del API = " + r.getStatus());
-            String key = null;
             if (r.getStatus() == 200) {
-                key = r.readEntity(String.class);
-                System.out.println(">>> LoginServlet: clave recibida = '" + key + "'");
-            }
+                String key = r.readEntity(String.class);
+                
+                // Verificar que la key no está vacía
+                if (key == null || key.trim().isEmpty()) {
+                    resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Error en la autenticación");
+                    return;
+                }
 
-            if (r.getStatus() == 200 && key != null && !key.trim().isEmpty()) {
-                // Autenticación correcta
+                // Crear sesión y guardar datos
                 HttpSession session = req.getSession(true);
                 session.setAttribute("key", key);
                 session.setAttribute("dni", dni);
-                session.setAttribute("role", role); // Guardamos el rol en sesión
-
-                // Redireccionamos según el rol:
-                if ("profesor".equals(role)) {
-                    resp.sendRedirect(req.getContextPath() + "/asignaturasProfesor.jsp");
-                } else {
-                    // Si role es "alumno" (o cualquier otro valor), llevamos a asignaturasAlumno.jsp
-                    resp.sendRedirect(req.getContextPath() + "/asignaturasAlumno.jsp");
-                }
+                
+                // Redirigir directamente a asignaturas
+                resp.sendRedirect(req.getContextPath() + "/asignaturas");
             } else {
-                // Credenciales inválidas
-                r.close();
-                req.setAttribute("errorMsg", "DNI o contraseña incorrectos");
-                req.getRequestDispatcher("/login.html").forward(req, resp);
+                resp.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Credenciales inválidas");
             }
         } catch (Exception e) {
             e.printStackTrace();
-            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
-                           "Error en el servidor: " + e.getMessage());
+            resp.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, 
+                         "Error en el servidor: " + e.getMessage());
         }
     }
 
@@ -79,4 +133,5 @@ public class LoginServlet extends HttpServlet {
         }
     }
 }
+
 
